@@ -1,0 +1,36 @@
+builddir = build/msvc
+luamake = D:/work/luamake/luamake.exe
+bin = $builddir/bin
+obj = $builddir/obj
+msvc_deps_prefix = 注意: 包含文件:
+rule configure
+  command = $luamake init -f $in
+  generator = 1
+  restat = 1
+build $builddir/make.ninja: configure make.lua
+rule luadef
+  command = $luamake lua build/lua_def.lua -in $in -out $out
+  description = Lua def $out
+rule luadeps
+  command = lib /nologo /machine:x64 /def:$in /out:$out
+  description = Lua import lib $out
+build build/lua54/windeps/lua.def: luadef build/lua54
+build build/lua54/windeps/lua_x64.lib: luadeps build/lua54/windeps/lua.def
+rule CXX_findlocal
+  command = cl /nologo /showIncludes -c $in /Fo$out /EHsc /Zc:__cplusplus $
+      /Od /W3 /permissive- /MDd /Zi /FS /Fd$obj/findlocal/luamake.pdb $
+      /Ibuild/lua54 /std:c++17
+  description = Compile C++ $out
+  deps = msvc
+build $obj/findlocal/findlocal.obj: CXX_findlocal findlocal.cpp
+rule LINK_findlocal
+  command = cl /nologo $in  /link /DEBUG:FASTLINK $
+      /EXPORT:luaopen_findlocal_core /out:$out /DLL /IMPLIB:$bin/findlocal.lib
+  description = Link    Dll $out
+build $bin/findlocal.dll | $bin/findlocal.lib: LINK_findlocal $
+    $obj/findlocal/findlocal.obj build/lua54/windeps/lua_x64.lib
+rule command
+  command = $COMMAND
+  description = $DESC
+build $builddir/_/test: command | $bin/findlocal.dll
+  COMMAND = $luamake lua test.lua

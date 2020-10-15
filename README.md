@@ -4,5 +4,19 @@
 
 ``` lua
     local findlocal = require "findlocal"
+    
+    --文件test.lua中第一个名字是a的局部变量
     print(findlocal("@test.lua", "a"))
+ 
+    --文件test.lua中第二个名字是a的局部变量
+    print(findlocal("@test.lua", "a#2"))
+  
+    --文件test.lua中18行第一个局部变量
+    print(findlocal("@test.lua", "18"))
+    
+    --文件test.lua中18行第二个局部变量
+    print(findlocal("@test.lua", "18#2"))
+   
+    --文件test.lua中从18行查找名字为a的局部变量（作用域包含18行且定义在最后的局部变量）
+    print(findlocal("@test.lua", "a", 18))
 ```
